@@ -4,7 +4,8 @@ This repository contains Python programs created during my Computer Science less
 
 ## Skills
 - Python
-- Selection
-- Iteration
+- C#
+- HTML/CSS/JavaScript
 - Functions
+- Problem solving
 - GitHub
