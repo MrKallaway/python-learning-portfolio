@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,125 +22,163 @@ def load_data():
 
 df = load_data()
 
+def filtered_data():
+    # Return rows matching the selected department and threat
+    data = df.copy()
 
-def show_threat_chart():
-    # Display the number of incidents for each human threat
-    counts = df["ThreatType"].value_counts().sort_values(ascending=False)
+    department = department_var.get()
+    threat = threat_var.get()
 
-    plt.figure(figsize=(8, 5))
-    counts.plot(kind="bar")
-    plt.title("Human Threat Incidents by Type")
-    plt.xlabel("Threat Type")
-    plt.ylabel("Number of Incidents")
-    plt.xticks(rotation=20, ha="right")
-    plt.tight_layout()
-    plt.show()
+    if department != "All":
+        data = data[data["Department"] == department]
 
+    if threat != "All":
+        data = data[data["ThreatType"] == threat]
 
-def show_average_risk_chart():
-    # Display average risk score for each threat type
-    average_risk = (
-        df.groupby("ThreatType")["RiskScore"]
-        .mean()
-        .sort_values(ascending=False)
-    )
+    return data
 
-    plt.figure(figsize=(8, 5))
-    average_risk.plot(kind="bar")
-    plt.title("Average Risk Score by Human Threat")
-    plt.xlabel("Threat Type")
-    plt.ylabel("Average Risk Score")
-    plt.xticks(rotation=20, ha="right")
-    plt.tight_layout()
-    plt.show()
+def update_table():
+    # Refresh the Treeview using the selected filters
+    for item in table.get_children():
+        table.delete(item)
 
+    data = filtered_data()
 
-def show_high_risk():
-    # Show incidents with a risk score of 16 or above
-    high_risk = df[df["RiskScore"] >= 16]
-
-    output.delete("1.0", tk.END)
-
-    if high_risk.empty:
-        output.insert(tk.END, "no high-risk incidents found.")
-        return
-
-    for _, row in high_risk.iterrows():
-        output.insert(
+    for _, row in data.iterrows():
+        table.insert(
+            "",
             tk.END,
-            f"#{row['IncidentID']} | {row['Department']} | "
-            f"{row['ThreatType']} | Risk {row['RiskScore']}\n"
+            values=(
+                row["IncidentID"],
+                row["Department"],
+                row["ThreatType"],
+                row["RiskScore"],
+                row["RecommendedControl"]
+            )
         )
 
+    status_label.config(text=f"Showing {len(data)} incident(s)")
 
-def show_summary():
-    # Use pandas and NumPy to create a quick SOC-style summary
-    total = len(df)
-    mean_risk = np.mean(df["RiskScore"].to_numpy())
-    highest = df.loc[df["RiskScore"].idxmax()]
+
+def show_filtered_chart():
+    # Plot incident counts for the filtered dataset
+    data = filtered_data()
+
+    if data.empty:
+        return
+
+    counts = data["ThreatType"].value_counts()
+
+    plt.figure(figsize=(7, 4))
+    counts.plot(kind="bar")
+    plt.title("Filtered Human Threat Incidents")
+    plt.xlabel("Threat Type")
+    plt.ylabel("Incidents")
+    plt.xticks(rotation=20, ha="right")
+    plt.tight_layout()
+    plt.show()
+
+
+def show_risk_box():
+    # Display statistics for the currently filtered data
+    data = filtered_data()
 
     output.delete("1.0", tk.END)
-    output.insert(tk.END, f"Total incidents: {total}\n")
-    output.insert(tk.END, f"Mean risk score: {mean_risk:.2f}\n")
-    output.insert(
-        tk.END,
-        f"Highest risk: #{highest['IncidentID']} - "
-        f"{highest['ThreatType']} ({highest['RiskScore']})\n"
-    )
-    output.insert(
-        tk.END,
-        f"Recommended control: #{highest['RecommendedControl']}\n"
-    )
+
+    if data.empty:
+        output.insert(tk.END, "No incidents match the filters.")
+        return
+
+    risks = data["RiskScore"].to_numpy()
+
+    output.insert(tk.END, f"Mean risk: {np.mean(risks):.2f}\n")
+    output.insert(tk.END, f"Median risk: {np.median(risks):.2f}\n")
+    output.insert(tk.END, f"Maximum risk: {np.max(risks)}\n")
+    output.insert(tk.END, f"Minimum risk: {np.min(risks)}\n")
 
 
 # ---------------- TKINTER GUI ----------------
 root = tk.Tk()
 root.title("Human Threat Analytics Dashboard")
-root.geometry("820x560")
+root.geometry("980x650")
 
-title = tk.Label(
+tk.Label(
     root,
-    text="HUMAN THREAT ANALYTICS DASHBOARD",
+    text="HUMAN THREAT FILTER DASHBOARD",
     font=("Arial", 20, "bold")
-)
-title.pack(pady=14)
+).pack(pady=12)
 
-subtitle = tk.Label(
+filters = ttk.Frame(root)
+filters.pack(pady=8)
+
+department_var = tk.StringVar(value="All")
+threat_var = tk.StringVar(value="All")
+
+departments = ["All"] + sorted(df["Department"].unique().tolist())
+threats = ["All"] + sorted(df["ThreatType"].unique().tolist())
+
+ttk.Label(filters, text="Department:").grid(row=0, column=0, padx=4)
+ttk.Combobox(
+    filters,
+    textvariable=department_var,
+    values=departments,
+    state="readonly",
+    width=18
+).grid(row=0, column=1, padx=4)
+
+ttk.Label(filters, text="Threat:").grid(row=0, column=2, padx=4)
+ttk.Combobox(
+    filters,
+    textvariable=threat_var,
+    values=threats,
+    state="readonly",
+    width=22
+).grid(row=0, column=3, padx=4)
+
+ttk.Button(
+    filters,
+    text="Apply Filter",
+    command=update_table
+).grid(row=0, column=4, padx=5)
+
+ttk.Button(
+    filters,
+    text="Show Chart",
+    command=show_filtered_chart
+).grid(row=0, column=5, padx=5)
+
+ttk.Button(
+    filters,
+    text="Risk Statistics",
+    command=show_risk_box
+).grid(row=0, column=6, padx=5)
+
+columns = ("ID", "Department", "Threat", "Risk", "Control")
+
+table = ttk.Treeview(
     root,
-    text="Analyse fictional incidents using pandas, NumPy, Matplotlib and Tkinter"
+    columns=columns,
+    show="headings",
+    height=15
 )
-subtitle.pack()
 
-button_frame = ttk.Frame(root)
-button_frame.pack(pady=16)
+for column in columns:
+    table.heading(column, text=column)
 
-ttk.Button(
-    button_frame,
-    text="Summary",
-    command=show_summary
-).grid(row=0, column=0, padx=5)
+table.column("ID", width=50)
+table.column("Department", width=110)
+table.column("Threat", width=160)
+table.column("Risk", width=70)
+table.column("Control", width=180)
 
-ttk.Button(
-    button_frame,
-    text="Threat Chart",
-    command=show_threat_chart
-).grid(row=0, column=1, padx=5)
+table.pack(fill="both", expand=True, padx=15, pady=10)
 
-ttk.Button(
-    button_frame,
-    text="Average Risk Chart",
-    command=show_average_risk_chart
-).grid(row=0, column=2, padx=5)
+status_label = ttk.Label(root, text="")
+status_label.pack()
 
-ttk.Button(
-    button_frame,
-    text="High-Risk Incidents",
-    command=show_high_risk
-).grid(row=0, column=3, padx=5)
+output = tk.Text(root, height=6, width=105)
+output.pack(padx=15, pady=10)
 
-output = tk.Text(root, width=92, height=20)
-output.pack(padx=18, pady=10)
-
-show_summary()
+update_table()
 
 root.mainloop()
