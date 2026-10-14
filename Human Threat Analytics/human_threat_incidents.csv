@@ -1,0 +1,25 @@
+IncidentID,Department,ThreatType,Likelihood,Impact,RecommendedControl,Description
+1,Finance,Human Error,3,4,Confirmation box,Email sent to wrong recipient
+2,HR,Human Error,2,4,Staff training,File deleted accidentally
+3,IT,Poor Cyber Hygiene,4,4,Lock screen policy,Workstation left unlocked
+4,Sales,Poor Cyber Hygiene,4,5,Password manager,Password written on paper
+5,Operations,Disguised Criminal,3,5,Check visitor ID,Unknown engineer requests access
+6,Facilities,Disguised Criminal,2,4,Escort visitors,Visitor found unaccompanied
+7,IT,Malicious Employee,3,5,Suspend account,Leaver account still active
+8,Finance,Malicious Employee,2,5,Immediate removal,Suspicious copying of finance files
+9,Marketing,Human Error,3,3,Staff training,Sensitive attachment sent externally
+10,HR,Poor Cyber Hygiene,4,4,Password manager,Same password reused
+11,Reception,Disguised Criminal,3,4,Check visitor ID,Courier cannot show identification
+12,IT,Poor Cyber Hygiene,5,4,Lock screen policy,Admin session left unlocked
+13,Finance,Human Error,2,5,Read-only permissions,Spreadsheet overwritten
+14,Operations,Human Error,3,4,Confirmation box,Critical record almost deleted
+15,Sales,Malicious Employee,2,4,Suspend account,Former employee credentials usable
+16,Facilities,Poor Cyber Hygiene,3,3,Password manager,Shared account password reused
+17,Reception,Disguised Criminal,4,4,Escort visitors,Impersonated contractor reaches office
+18,Marketing,Poor Cyber Hygiene,4,3,Lock screen policy,Laptop left unlocked at desk
+19,HR,Malicious Employee,3,5,Suspend account,Insider downloads staff records
+20,IT,Human Error,2,4,Staff training,Wrong system configuration approved
+21,Finance,Poor Cyber Hygiene,4,5,Password manager,Weak shared password used
+22,Operations,Disguised Criminal,3,5,Check visitor ID,Fake technician requests server room access
+23,Sales,Human Error,3,3,Confirmation box,Customer data nearly emailed to wrong contact
+24,Reception,Poor Cyber Hygiene,3,4,Lock screen policy,Reception PC left unattended and unlocked
