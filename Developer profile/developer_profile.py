@@ -80,5 +80,3 @@ while running:
         display_github()
     elif choice == "5": # exit
         running = False
-        
-
