@@ -7,6 +7,7 @@ WINDOW_HEIGHT = 500
 PLAYER_SIZE = 36
 STAR_SIZE = 22
 STAR_POINTS = 10
+HAZARD_SIZE = 52
 MAX_LIVES = 3
 MOVE_DISTANCE = 24
 TIMER_START = 60
@@ -22,6 +23,7 @@ canvas.pack()
 player_name = "Pilot"
 score = 0
 lives = MAX_LIVES
+difficulty = 1
 time_left = TIMER_START
 delay = DEFAULT_DELAY
 game_over = False
@@ -36,16 +38,19 @@ player = canvas.create_rectangle(
 )
 
 star = canvas.create_oval(0, 0, STAR_SIZE, STAR_SIZE, fill="gold")
+hazard = canvas.create_oval(0, 0, HAZARD_SIZE, HAZARD_SIZE, fill="red")
 
 player_label = tk.Label(canvas, text=f"Player name: {player_name}")
 score_label = tk.Label(canvas, text=f"Score: {str(score)}")
 lives_label = tk.Label(canvas, text=f"lives: {str(lives)}")
+difficulty_label = tk.Label(canvas, text=f"Difficulty: {str(difficulty)}")
 
 timer_label = tk.Label(canvas, text=f"Time left: {str(time_left)}")
 
 canvas.create_window(10, 10, window=player_label, anchor="nw")
 canvas.create_window(10, 30, window=score_label, anchor="nw")
 canvas.create_window(10, 50, window=lives_label, anchor="nw")
+canvas.create_window(10, 50, window=difficulty_label, anchor="nw")
 
 canvas.create_window(800, 10, window=timer_label, anchor="ne")
 
@@ -57,6 +62,29 @@ def move_star():
 
     # applies the randomised coordinates to the star
     canvas.coords(star, x, y, x+STAR_SIZE, y+STAR_SIZE)
+
+
+
+    # and the same with the hazard
+    x2 = random.randint(100, WINDOW_WIDTH - HAZARD_SIZE)
+    y2 = random.randint(40, WINDOW_HEIGHT - HAZARD_SIZE)
+        
+    canvas.coords(hazard, x2, y2, x2+HAZARD_SIZE, y2+HAZARD_SIZE)
+
+
+
+    # to make sure the hazard does not spawn on top of the player:
+    # gets the bounding box of the hazard
+    hazard_coords = canvas.coords(hazard)
+    
+    # finds all items overlapping with these coordinates
+    overlapping_items = canvas.find_overlapping(*hazard_coords)
+    while star in overlapping_items or player in overlapping_items:
+        x2 = random.randint(100, WINDOW_WIDTH - HAZARD_SIZE)
+        y2 = random.randint(40, WINDOW_HEIGHT - HAZARD_SIZE)
+        canvas.coords(hazard, x2, y2, x2+HAZARD_SIZE, y2+HAZARD_SIZE)
+
+
 
 
 def move_player(dx, dy):
@@ -74,7 +102,7 @@ def check_collision():
     if it does then it adds STAR_POINTS to the score
     and moves the star"""
 
-    global score
+    global score, lives, difficulty
 
     # TODO 2: compare the player's coordinates with the star
     # if they touch, add STAR_POINTS to score and move the star
@@ -90,8 +118,17 @@ def check_collision():
     if star in overlapping_items:
         # because it is in the list, add to the score
         score += STAR_POINTS
+        difficulty = score/60
         # and then move the star elsewhere
         move_star()
+
+    # check if a hazard is in the list
+    if hazard in overlapping_items:
+        # remove a life
+        lives -= 1
+        move_star()
+
+
 
 
 def update_hud():
@@ -111,8 +148,9 @@ def update_hud():
     score_label["text"] = f"Score: {str(score)}"
     lives_label["text"] = f"Lives: {str(lives)}"
     timer_label["text"] = f"Time left: {str(time_left)}"
+    difficulty_label["text"] = f"Difficulty: {str(difficulty)}"
 
-    if time_left <= 0:
+    if time_left <= 0 or lives <= 0:
         game_over = True
 
 
