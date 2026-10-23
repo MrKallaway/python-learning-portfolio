@@ -1,8 +1,8 @@
 """
 Calculator GUI - Personal project
 This project was made in my free time, completely unrelated to college tasks
-Project start: 22/10/2026
-Project end: TODO
+Project start: 21/10/2026
+Project end: 23/10/2026
 """
 
 import tkinter as tk
